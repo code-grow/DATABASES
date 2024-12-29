@@ -121,17 +121,62 @@ ORDER BY 1 ASC;
 
 -----------------------------------------------------------------------------------
 
+-----------------------------------------------------------------------------------
+-------------------   5 SQL queries   -----------------------------------------
+-----------------------------------------------------------------------------------
+
+-- 5.1
+
+-- Provide an overview that shows by ingredient in which themes that ingredient is used. There is an additional column that shows the energy of an ingredient in one word: lower than 100 (kcal) is ‘low’ , between 100 and 300 is ‘medium’ and higher than 300 is ‘high’. Avoid repetition of rows. Put ingredients in alphabetical order. Write the query.
+SELECT distinct I.name AS ingredient, GT.theme AS "name theme", 
+  CASE
+    WHEN energy < 100 THEN 'low'
+    WHEN energy > 300 THEN 'high'
+    ELSE 'medium'
+  END AS energy
+FROM ingredient I
+    INNER JOIN ingredient_in_dish IG ON (I.name = IG.ingredient)
+    INNER JOIN dish_fits_in_theme GT using(dish)
+ORDER BY 1;
 
 
 -----------------------------------------------------------------------------------
 
+-- 5.2
+
+--For each theme, please list (see figure) by municipality how many participants are from that municipality. Rank alphabetically by theme and within one theme according to decreasing number of members. Write the query.
+SELECT theme, municipality, COUNT (member_number) AS "number of members per municipality"
+FROM member
+  INNER JOIN municipality USING (postal_code)
+  INNER JOIN participation ON (member = member_number)
+  INNER JOIN cooking_workshop ON (workshop = workshop_id)
+GROUP BY theme, postal_code, municipality
+ORDER BY theme, COUNT(member_number) DESC;
 
 
 -----------------------------------------------------------------------------------
-
-
+--An alternative where municipality in the GROUP BY may be omitted because of not using USING:
+SELECT theme, municipality, COUNT (member_number) AS "number of members per municipality"
+FROM member
+  INNER JOIN municipality ON municipality.postal_code = member.postal_code
+  INNER JOIN participation ON (member = member_number)
+  INNER JOIN cooking_workshop ON (workshop = workshop_id)
+GROUP BY theme, municipality.postal_code
+ORDER BY theme, COUNT(member_number) DESC;
 
 -----------------------------------------------------------------------------------
+
+-- 5.3
+--How many kcal are in the dish ‘Tiramisu with chocolate and banana’ per ingredient? Please note that where the unit is ‘g’ or ‘ml’, the energy content is the number of kcal per 100 g or 100 ml. For all other units, the number in kcal is simply the energy per unit (piece, tablespoon, etc.). So keep in mind the units. The ingredient that makes the largest energy contribution to this dish is at the top, then the second, etc. See figure. Write the query.
+SELECT IG.ingredient, quantity, unit,energy,
+  CASE
+    WHEN unit in ('g','ml') THEN energy * quantity / 100
+    ELSE energy * quantity
+  END AS titak
+FROM ingredient_in_dish IG INNER JOIN ingredient I ON IG.ingredient = I.name
+WHERE dish = 'Tiramisu with chocolate and banana'
+ORDER BY 5 DESC;
+
 
 
 
